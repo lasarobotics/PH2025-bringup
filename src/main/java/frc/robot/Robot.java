@@ -4,22 +4,39 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.hardware.TalonFX;
+
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj.XboxController;
+
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
+  private final CANBus canbus = new CANBus("canivore");
+  private final TalonFX elevatorMotor = new TalonFX(0, canbus);
+  private final TalonFX outtakeMotor = new TalonFX(1, canbus);
+  private final XboxController m_joystick = new XboxController(0);
+
+  private final DutyCycleOut output = new DutyCycleOut(100);
 
   public Robot() {
+    TalonFXConfiguration configs = new TalonFXConfiguration();
+    elevatorMotor.getConfigurator().apply(configs);
+    outtakeMotor.getConfigurator().apply(configs);
     m_robotContainer = new RobotContainer();
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run(); 
+    
   }
 
   @Override
@@ -54,7 +71,14 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    if (m_joystick.getLeftBumperButton()) {
+      elevatorMotor.setControl(output);    
+    }
+    if (m_joystick.getRightBumperButton()) {
+      outtakeMotor.setControl(output);
+    }
+  }
 
   @Override
   public void teleopExit() {}
